@@ -27,6 +27,7 @@
 package Swordfighting;
 
 
+import java.awt.Font;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
@@ -40,11 +41,16 @@ import javax.swing.Timer;
 
 
 public class Board extends JPanel implements KeyListener {
+	public static int GAME_PLAY = 0;
+	public static int GAME_PAUSE = 1;
+	public static int GAME_OVER = 2;
+	
+	private int state = GAME_PLAY;
 	
 	// runtime
 	private Timer looper;
 	private static int FPS = 60;
-	private static int delay = FPS / 1000;
+	private static int delay = FPS / 2000;
 	
 	
 	// board, 1x block on board, shape
@@ -117,29 +123,43 @@ public class Board extends JPanel implements KeyListener {
 	}
 	
 	private void update() {
-		currentShape.update();
+		if(state == GAME_PLAY) {
+			currentShape.update();
+		}
 	}
 	
 	public void setCurrentShape() {
 		currentShape = shapes[random.nextInt(shapes.length)];
 		currentShape.reset();
+		checkOverGame();
+	}
+	
+	private void checkOverGame() {
+		int[][] coords = currentShape.getCoords();
+		
+		for(int row = 0; row < coords.length; row++) {
+			for(int col = 0; col < coords[0].length; col++) {
+				if(coords[row][col] != 0) {
+					if(board[row + currentShape.getY()][col + currentShape.getX()] != null) {
+						state = GAME_OVER;
+					}
+				}	
+			}
+		}
 	}
 	
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		
-		// color window
-		g.setColor(Color.black);
-		g.fillRect(0, 0, getWidth(), getHeight());
+		g.setColor(Color.black); g.fillRect(0, 0, getWidth(), getHeight());
 		
 		currentShape.render(g);
 		
 		for(int row = 0; row < board.length; row++) {
 			for(int col = 0; col < board[row].length; col++) {
 				if(board[row][col] != null) {
-					g.setColor(board[row][col]);
-					g.fillRect(col * BLOCK_SIZE, row  * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+					g.setColor(board[row][col]); g.fillRect(col * BLOCK_SIZE, row  * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
 				}
 			}
 		}
@@ -154,7 +174,14 @@ public class Board extends JPanel implements KeyListener {
 		
 		for(int col = 0; col <= BOARD_WIDTH; col++) {
 			g.drawLine(BLOCK_SIZE * col, 0, col * BLOCK_SIZE, BLOCK_SIZE * BOARD_HEIGHT);
-			
+		}
+		
+		if(state == GAME_OVER) {
+			g.setFont(new Font("Times New Roman", 1, 17)); g.setColor(Color.white); g.drawString("Game Over!", 310, 20);
+		}
+		
+		if(state == GAME_PAUSE) {
+			g.setFont(new Font("Times New Roman", 1, 17)); g.setColor(Color.white); g.drawString("Game Paused;", 310, 20);
 		}
 	}
 
@@ -175,6 +202,27 @@ public class Board extends JPanel implements KeyListener {
 			currentShape.moveLeft();
 		} else if(e.getKeyCode() == KeyEvent.VK_UP) {
 			currentShape.rotateShape();
+		}
+		
+		if (state == GAME_OVER) {
+			if(e.getKeyCode() == KeyEvent.VK_SPACE) {
+				for(int row = 0; row < board.length; row++) {
+					for(int col = 0; col < board[row].length; col++) {
+						board[row][col] = null;
+					}
+				}
+				
+				state = GAME_PLAY;
+				setCurrentShape();
+			}
+		}
+		
+		if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+			if(state == GAME_PLAY) {
+				state = GAME_PAUSE;
+			} else if(state == GAME_PAUSE || state == GAME_OVER) {
+				state = GAME_PLAY;
+			}
 		}
 	}
 
