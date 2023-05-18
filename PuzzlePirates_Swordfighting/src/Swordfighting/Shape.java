@@ -40,6 +40,7 @@ public class Shape {
 		this.x = 4;
 		this.y = 0;
 		collision = false;
+		this.speedDown();
 	}
 	 
 	public void update() {
@@ -48,8 +49,7 @@ public class Shape {
 				for(int col = 0; col < coords[0].length; col++) {
 					if(coords[row][col] != 0) {
 						board.getBoard()[y + row][x + col] = color;
-					}
-							
+					}	
 				}
 			}
 			checkLine();
@@ -110,7 +110,7 @@ public class Shape {
 		for(int topLine = board.getBoard().length - 1; topLine > 0; topLine--) {
 			int count = 0;
 			
-			for(int col = 0; col < coords[0].length; col++) {
+			for(int col = 0; col < board.getBoard()[0].length; col++) {
 				if(board.getBoard()[topLine][col] != null) {
 					count++;
 				}
@@ -125,15 +125,14 @@ public class Shape {
 	}
 	
 	public void rotateShape() {
-		int[][] rotatedShape = transposeMatrix(coords);
-		reverseRows(rotatedShape);
+		int[][] rotatedShape = reverseRows(transposeMatrix(coords));
 		
-		if((x + rotatedShape[0].length > Board.BOARD_WIDTH) || (y + rotatedShape.length > 20)) {
+		if((x + rotatedShape[0].length > 10) || (y + rotatedShape.length > 20)) {
 			return;
 		}
 		
 		for(int row = 0; row < rotatedShape.length; row++) {
-			for(int col = 0; col < rotatedShape[row].length; row++) {
+			for(int col = 0; col < rotatedShape[row].length; col++) {
 				if(rotatedShape[row][col] != 0) {
 					if(board.getBoard()[y + row][x + col] != null) {
 						return;
@@ -149,7 +148,7 @@ public class Shape {
 		int[][] temp = new int[matrix[0].length][matrix.length];
 		
 		for(int row = 0; row < matrix.length; row++) {
-			for(int col = 0; col < matrix[0].length; row++) {
+			for(int col = 0; col < matrix[0].length; col++) {
 				temp[col][row] = matrix[row][col]; // error from ~20:50 in Tetris Game On Java Tutorial - Part 8, https://www.youtube.com/watch?v=q6C5QEb1dT4 ::
 			}
 		}
@@ -157,7 +156,7 @@ public class Shape {
 		return temp;
 	}
 	
-	private void reverseRows(int[][] matrix) {
+	private int[][] reverseRows(int[][] matrix) {
 		int middle = matrix.length / 2;
 		
 		for(int row = 0; row < middle; row++) {
@@ -165,6 +164,8 @@ public class Shape {
 			matrix[row] = matrix[matrix.length - row - 1];
 			matrix[matrix.length - row - 1] = temp;
 		}
+		
+		return matrix;
 	}
 	
 	public void render(Graphics g) {
